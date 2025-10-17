@@ -51,12 +51,14 @@ export function DetailedAnalysis({ onBack, userId }: DetailedAnalysisProps) {
       ]
       
       // Calculate total spending
-      const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0)
+      const totalSpent = expenses.reduce((sum, exp: any) => sum + (exp.amount || 0), 0)
       
       // Category breakdown
       const categoryBreakdown: { [key: string]: number } = {}
-      expenses.forEach(exp => {
-        categoryBreakdown[exp.category] = (categoryBreakdown[exp.category] || 0) + exp.amount
+      expenses.forEach((exp: any) => {
+        if (exp.category && exp.amount) {
+          categoryBreakdown[exp.category] = (categoryBreakdown[exp.category] || 0) + exp.amount
+        }
       })
       
       // Monthly trend (last 6 months)
