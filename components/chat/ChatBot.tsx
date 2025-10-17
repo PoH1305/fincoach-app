@@ -1,10 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Bot, User } from 'lucide-react'
+import { Send, Bot, User, Lightbulb, Target, Trophy, Zap, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { VoiceInput } from '@/components/ui/VoiceInput'
 import { generateGeminiResponse, coachingPersonalities } from '../../lib/customAI'
+import { proactiveAssistant, ProactiveMessage } from '../../lib/ai/proactiveAssistant'
 
 
 interface Message {
@@ -12,6 +13,9 @@ interface Message {
   text: string
   sender: 'user' | 'bot'
   timestamp: Date
+  isProactive?: boolean
+  type?: 'insight' | 'goal' | 'celebration' | 'challenge'
+  feedbackScore?: number
 }
 
 export function ChatBot() {
@@ -26,6 +30,56 @@ export function ChatBot() {
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [selectedPersonality, setSelectedPersonality] = useState('supportive')
+  const [showProactiveDemo, setShowProactiveDemo] = useState(false)
+
+  useEffect(() => {
+    // Load proactive messages on component mount
+    loadProactiveMessages()
+    
+    // Demo: Show proactive message after 5 seconds
+    const timer = setTimeout(() => {
+      if (!showProactiveDemo) {
+        addProactiveMessage()
+        setShowProactiveDemo(true)
+      }
+    }, 5000)
+    
+    return () => clearTimeout(timer)
+  }, [])
+
+  const loadProactiveMessages = async () => {
+    try {
+      const proactiveMessages = await proactiveAssistant.getProactiveMessages('demo')
+      const formattedMessages = proactiveMessages.map(msg => ({
+        id: msg.id,
+        text: msg.message,
+        sender: 'bot' as const,
+        timestamp: msg.timestamp,
+        isProactive: true,
+        type: msg.type
+      }))
+      setMessages(prev => [...formattedMessages, ...prev])
+    } catch (error) {
+      console.error('Error loading proactive messages:', error)
+    }
+  }
+
+  const addProactiveMessage = async () => {
+    try {
+      const proactiveMsg = await proactiveAssistant.generateDemoMessage('demo')
+      const newMessage: Message = {
+        id: proactiveMsg.id,
+        text: proactiveMsg.message,
+        sender: 'bot',
+        timestamp: proactiveMsg.timestamp,
+        isProactive: true,
+        type: proactiveMsg.type
+      }
+      setMessages(prev => [newMessage, ...prev])
+    } catch (error) {
+      console.error('Error adding proactive message:', error)
+    }
+  }
   
   const personalities = [
     { id: 'supportive', name: 'Maya - Supportive', icon: '🤗', description: 'Gentle guidance' },
@@ -70,6 +124,32 @@ export function ChatBot() {
       }
       setMessages(prev => [...prev, errorMessage])
       setIsTyping(false)
+    }
+  }
+
+  const handleFeedback = (messageId: string, isPositive: boolean) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, feedbackScore: isPositive ? 1 : -1 }
+        : msg
+    ))
+  }
+
+  const getProactiveIcon = (type?: string) => {
+    switch (type) {
+      case 'goal': return <Target className="w-4 h-4" />
+      case 'celebration': return <Trophy className="w-4 h-4" />
+      case 'challenge': return <Zap className="w-4 h-4" />
+      default: return <Lightbulb className="w-4 h-4" />
+    }
+  }
+
+  const getProactiveColor = (type?: string) => {
+    switch (type) {
+      case 'goal': return 'from-sky/20 to-mint/20 border-sky'
+      case 'celebration': return 'from-mint/20 to-lavender/20 border-mint'
+      case 'challenge': return 'from-coral/20 to-sky/20 border-coral'
+      default: return 'from-lavender/20 to-mint/20 border-lavender'
     }
   }
 
@@ -123,21 +203,59 @@ export function ChatBot() {
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                 message.sender === 'bot' 
-                  ? 'bg-gradient-to-r from-mint to-sky' 
+                  ? message.isProactive
+                    ? 'bg-gradient-to-r from-lavender to-mint animate-pulse'
+                    : 'bg-gradient-to-r from-mint to-sky'
                   : 'bg-coral/20'
               }`}>
                 {message.sender === 'bot' ? (
-                  <Bot className="w-4 h-4 text-navy" />
+                  message.isProactive ? getProactiveIcon(message.type) : <Bot className="w-4 h-4 text-navy" />
                 ) : (
                   <User className="w-4 h-4 text-coral" />
                 )}
               </div>
-              <div className={`max-w-[70%] p-3 rounded-2xl ${
-                message.sender === 'bot'
-                  ? 'bg-white/20 backdrop-blur-md'
-                  : 'bg-coral/20'
+              <div className={`max-w-[70%] ${
+                message.isProactive
+                  ? `p-4 rounded-2xl bg-gradient-to-r ${getProactiveColor(message.type)} border-l-4 backdrop-blur-md`
+                  : message.sender === 'bot'
+                    ? 'p-3 rounded-2xl bg-white/20 backdrop-blur-md'
+                    : 'p-3 rounded-2xl bg-coral/20'
               }`}>
+                {message.isProactive && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-bold text-navy/80">FinCoach Tip 💡</span>
+                    <span className="text-xs px-2 py-1 bg-white/30 rounded-full capitalize">
+                      {message.type}
+                    </span>
+                  </div>
+                )}
                 <p className="text-sm">{message.text}</p>
+                {message.isProactive && (
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => handleFeedback(message.id, true)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors ${
+                        message.feedbackScore === 1
+                          ? 'bg-mint/30 text-mint'
+                          : 'bg-white/20 hover:bg-mint/20'
+                      }`}
+                    >
+                      <ThumbsUp className="w-3 h-3" />
+                      Helpful
+                    </button>
+                    <button
+                      onClick={() => handleFeedback(message.id, false)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors ${
+                        message.feedbackScore === -1
+                          ? 'bg-coral/30 text-coral'
+                          : 'bg-white/20 hover:bg-coral/20'
+                      }`}
+                    >
+                      <ThumbsDown className="w-3 h-3" />
+                      Not relevant
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
@@ -195,6 +313,12 @@ export function ChatBot() {
             {action}
           </button>
         ))}
+        <button
+          onClick={addProactiveMessage}
+          className="px-3 py-1 text-xs bg-lavender/20 text-navy rounded-full hover:bg-lavender/30 transition-colors"
+        >
+          💡 Get AI Tip
+        </button>
       </div>
     </div>
   )
