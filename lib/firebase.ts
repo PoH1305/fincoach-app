@@ -35,6 +35,10 @@ export const getUserExpenses = async (userId: string) => {
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
 }
 
+export const getExpenses = async (userId: string) => {
+  return await getUserExpenses(userId)
+}
+
 export const saveChatMessage = async (userId: string, message: any) => {
   return await addDoc(collection(db, 'chatHistory'), {
     ...message,
