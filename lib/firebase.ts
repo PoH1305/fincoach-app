@@ -62,3 +62,31 @@ export const updateUserProfile = async (userId: string, profileData: any) => {
     updatedAt: new Date()
   })
 }
+
+export const saveProactiveMessage = async (userId: string, message: any) => {
+  return await addDoc(collection(db, 'proactive_messages'), {
+    ...message,
+    userId,
+    timestamp: new Date()
+  })
+}
+
+export const getProactiveMessages = async (userId: string) => {
+  const q = query(
+    collection(db, 'proactive_messages'),
+    where('userId', '==', userId),
+    where('dismissed', '!=', true),
+    orderBy('timestamp', 'desc'),
+    limit(10)
+  )
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+}
+
+export const updateMessageFeedback = async (messageId: string, feedbackScore: number) => {
+  const messageRef = doc(db, 'proactive_messages', messageId)
+  return await updateDoc(messageRef, {
+    feedbackScore,
+    updatedAt: new Date()
+  })
+}
