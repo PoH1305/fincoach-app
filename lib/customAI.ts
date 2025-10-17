@@ -68,15 +68,6 @@ function getFallbackResponse(message: string, personality: string): string {
 }
 
 export async function generateGeminiResponse(message: string, personality: string): Promise<string> {
-  // Always use fallback for now since DeepSeek requires payment
-  return getFallbackResponse(message, personality)
-  
-  // DeepSeek API code (commented out until payment is set up)
-  /*
-  if (!process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY) {
-    return getFallbackResponse(message, personality)
-  }
-
   try {
     const personalityPrompts = {
       supportive: "You are Maya, a supportive financial coach. Be encouraging, warm, and patient. Use gentle guidance with positive reinforcement.",
@@ -89,34 +80,36 @@ export async function generateGeminiResponse(message: string, personality: strin
 
 You are a financial coach helping with personal finance questions. Keep responses concise, helpful, and focused on Indian financial context (₹, SIP, mutual funds, etc.). Always end with a follow-up question to keep the conversation going.`
     
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyBib6xYJwPPvVvnX-i8nOCKIlg1l3d24eY`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
-        max_tokens: 500,
-        temperature: 0.7
+        contents: [{
+          parts: [{
+            text: `${systemPrompt}
+
+User: ${message}`
+          }]
+        }],
+        generationConfig: {
+          maxOutputTokens: 500,
+          temperature: 0.7
+        }
       })
     })
 
     if (!response.ok) {
-      throw new Error(`DeepSeek API error: ${response.status}`)
+      throw new Error(`Gemini API error: ${response.status}`)
     }
 
     const data = await response.json()
-    return data.choices[0]?.message?.content || getFallbackResponse(message, personality)
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || getFallbackResponse(message, personality)
   } catch (error) {
-    console.error('DeepSeek API error:', error)
+    console.error('Gemini API error:', error)
     return getFallbackResponse(message, personality)
   }
-  */
 }
 
 export { coachingPersonalities }
