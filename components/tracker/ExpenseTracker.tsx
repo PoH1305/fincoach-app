@@ -20,6 +20,9 @@ const categories = [
 export function ExpenseTracker() {
   const [user, setUser] = useState<any>(null)
   const [expenses, setExpenses] = useState<any[]>([])
+  const [monthlyIncome, setMonthlyIncome] = useState(50000)
+  const [showIncomeForm, setShowIncomeForm] = useState(false)
+  const [newIncome, setNewIncome] = useState('')
   const [loading, setLoading] = useState(true)
   
   useEffect(() => {
@@ -106,24 +109,84 @@ export function ExpenseTracker() {
           <h2 className="text-3xl font-poppins font-bold">Expense Tracker</h2>
           <p className="text-navy/60">Keep track of your spending 📊</p>
         </div>
-        <Button onClick={() => setShowAddForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Add Expense
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={() => setShowAddForm(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add Expense
+          </Button>
+          <Button onClick={() => setShowIncomeForm(true)} variant="secondary" className="gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Add Income
+          </Button>
+        </div>
       </div>
 
-      {/* Total Spent Card */}
+      {/* Income vs Expense Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card bg-gradient-to-r from-mint/20 to-sky/20"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-navy/60">Monthly Income</p>
+              <p className="text-4xl font-bold text-navy">₹{monthlyIncome.toLocaleString()}</p>
+            </div>
+            <div className="text-6xl">💰</div>
+          </div>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="card bg-gradient-to-r from-coral/20 to-lavender/20"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-navy/60">Total Spent This Month</p>
+              <p className="text-4xl font-bold text-navy">₹{totalSpent.toLocaleString()}</p>
+            </div>
+            <div className="text-6xl">💸</div>
+          </div>
+        </motion.div>
+      </div>
+      
+      {/* Balance Bar */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="card bg-gradient-to-r from-coral/20 to-mint/20"
+        transition={{ delay: 0.2 }}
+        className="card bg-gradient-to-r from-purple/20 to-mint/20"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-sm text-navy/60">Total Spent This Month</p>
-            <p className="text-4xl font-bold text-navy">₹{totalSpent.toLocaleString()}</p>
+            <p className="text-sm text-navy/60">Remaining Balance</p>
+            <p className={`text-3xl font-bold ${monthlyIncome - totalSpent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              ₹{(monthlyIncome - totalSpent).toLocaleString()}
+            </p>
           </div>
-          <div className="text-6xl">💸</div>
+          <div className="text-right">
+            <p className="text-sm text-navy/60">Savings Rate</p>
+            <p className="text-2xl font-bold text-purple-600">
+              {monthlyIncome > 0 ? Math.round(((monthlyIncome - totalSpent) / monthlyIncome) * 100) : 0}%
+            </p>
+          </div>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-4">
+          <div 
+            className={`h-4 rounded-full transition-all duration-500 ${
+              totalSpent > monthlyIncome ? 'bg-red-500' : 'bg-green-500'
+            }`}
+            style={{ width: `${Math.min((totalSpent / monthlyIncome) * 100, 100)}%` }}
+          />
+        </div>
+        <div className="flex justify-between text-xs text-navy/60 mt-2">
+          <span>₹0</span>
+          <span>₹{monthlyIncome.toLocaleString()}</span>
         </div>
       </motion.div>
 
@@ -294,6 +357,69 @@ export function ExpenseTracker() {
                 </Button>
                 <Button onClick={addExpense} className="flex-1">
                   Add Expense
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+      
+      {/* Add Income Modal */}
+      {showIncomeForm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowIncomeForm(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="card max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-2xl font-poppins font-bold mb-6">Set Monthly Income</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Monthly Income (₹)</label>
+                <input
+                  type="number"
+                  value={newIncome}
+                  onChange={(e) => setNewIncome(e.target.value)}
+                  className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-mint/50"
+                  placeholder="Enter your monthly income"
+                />
+              </div>
+              
+              <div className="bg-mint/10 p-4 rounded-xl">
+                <p className="text-sm text-navy/80">
+                  💡 <strong>Tip:</strong> Include your salary, freelance income, and any other regular monthly earnings.
+                </p>
+              </div>
+              
+              <div className="flex gap-3">
+                <Button 
+                  variant="secondary" 
+                  onClick={() => {
+                    setShowIncomeForm(false)
+                    setNewIncome('')
+                  }} 
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (newIncome) {
+                      setMonthlyIncome(parseInt(newIncome))
+                      setShowIncomeForm(false)
+                      setNewIncome('')
+                    }
+                  }} 
+                  className="flex-1"
+                >
+                  Set Income
                 </Button>
               </div>
             </div>
