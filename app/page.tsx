@@ -14,6 +14,7 @@ import { SocialChallenge } from '@/components/social/SocialChallenge'
 import { SmartInsights } from '@/components/insights/SmartInsights'
 import { GamifiedLearning } from '@/components/learning/GamifiedLearning'
 import { SavingsGames } from '@/components/games/SavingsGames'
+import { GoalSetting } from '@/components/goals/GoalSetting'
 import { Toast } from '@/components/ui/Toast'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LandingPage } from '@/components/landing/LandingPage'
@@ -103,6 +104,8 @@ export default function Home() {
         return <GamifiedLearning />
       case 'games':
         return <SavingsGames />
+      case 'goalSetting':
+        return <GoalSetting onBack={() => setActiveTab('dashboard')} />
       case 'profile':
         return <ProfilePage onClose={() => setActiveTab('dashboard')} />
       case 'quiz':
