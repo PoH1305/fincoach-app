@@ -8,6 +8,7 @@ import { saveExpense, getUserExpenses } from '../../lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../../lib/firebase'
 import { proactiveAI } from '../../lib/proactiveAI'
+import { useFinancial } from '../../lib/FinancialContext'
 
 const categories = [
   { name: 'Food', color: '#FF6F61', icon: '🍽️' },
@@ -18,9 +19,9 @@ const categories = [
 ]
 
 export function ExpenseTracker() {
+  const { financialData, updateIncome, updateExpenses, getBalance, getSavingsRate } = useFinancial()
   const [user, setUser] = useState<any>(null)
   const [expenses, setExpenses] = useState<any[]>([])
-  const [monthlyIncome, setMonthlyIncome] = useState(50000)
   const [showIncomeForm, setShowIncomeForm] = useState(false)
   const [newIncome, setNewIncome] = useState('')
   const [loading, setLoading] = useState(true)
@@ -32,14 +33,16 @@ export function ExpenseTracker() {
         loadExpenses(currentUser.uid)
       } else {
         // Demo data for non-logged users
-        setExpenses([
+        const demoExpenses = [
           { category: 'Food', amount: 1200, date: '2024-01-15', description: 'Lunch at cafe' },
           { category: 'Transport', amount: 600, date: '2024-01-14', description: 'Uber ride' },
           { category: 'Bills', amount: 900, date: '2024-01-13', description: 'Electricity bill' },
           { category: 'Entertainment', amount: 400, date: '2024-01-12', description: 'Movie tickets' },
           { category: 'Food', amount: 250, date: '2024-01-11', description: 'Groceries' },
           { category: 'Shopping', amount: 1500, date: '2024-01-10', description: 'New shoes' }
-        ])
+        ]
+        setExpenses(demoExpenses)
+        updateExpenses(demoExpenses)
         setLoading(false)
       }
     })
@@ -50,6 +53,7 @@ export function ExpenseTracker() {
     try {
       const userExpenses = await getUserExpenses(userId)
       setExpenses(userExpenses)
+      updateExpenses(userExpenses)
     } catch (error) {
       console.error('Error loading expenses:', error)
     } finally {
@@ -84,7 +88,9 @@ export function ExpenseTracker() {
         await saveExpense(user.uid, expense)
         await loadExpenses(user.uid)
       } else {
-        setExpenses([expense, ...expenses])
+        const newExpenses = [expense, ...expenses]
+        setExpenses(newExpenses)
+        updateExpenses(newExpenses)
       }
       
       // Track activity for proactive AI
@@ -131,7 +137,7 @@ export function ExpenseTracker() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-navy/60">Monthly Income</p>
-              <p className="text-4xl font-bold text-navy">₹{monthlyIncome.toLocaleString()}</p>
+              <p className="text-4xl font-bold text-navy">₹{financialData.monthlyIncome.toLocaleString()}</p>
             </div>
             <div className="text-6xl">💰</div>
           </div>
@@ -163,14 +169,14 @@ export function ExpenseTracker() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm text-navy/60">Remaining Balance</p>
-            <p className={`text-3xl font-bold ${monthlyIncome - totalSpent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ₹{(monthlyIncome - totalSpent).toLocaleString()}
+            <p className={`text-3xl font-bold ${getBalance() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              ₹{getBalance().toLocaleString()}
             </p>
           </div>
           <div className="text-right">
             <p className="text-sm text-navy/60">Savings Rate</p>
             <p className="text-2xl font-bold text-purple-600">
-              {monthlyIncome > 0 ? Math.round(((monthlyIncome - totalSpent) / monthlyIncome) * 100) : 0}%
+              {getSavingsRate()}%
             </p>
           </div>
         </div>
@@ -181,12 +187,12 @@ export function ExpenseTracker() {
             className={`h-4 rounded-full transition-all duration-500 ${
               totalSpent > monthlyIncome ? 'bg-red-500' : 'bg-green-500'
             }`}
-            style={{ width: `${Math.min((totalSpent / monthlyIncome) * 100, 100)}%` }}
+            style={{ width: `${Math.min((totalSpent / financialData.monthlyIncome) * 100, 100)}%` }}
           />
         </div>
         <div className="flex justify-between text-xs text-navy/60 mt-2">
           <span>₹0</span>
-          <span>₹{monthlyIncome.toLocaleString()}</span>
+          <span>₹{financialData.monthlyIncome.toLocaleString()}</span>
         </div>
       </motion.div>
 
@@ -412,7 +418,7 @@ export function ExpenseTracker() {
                 <Button 
                   onClick={() => {
                     if (newIncome) {
-                      setMonthlyIncome(parseInt(newIncome))
+                      updateIncome(parseInt(newIncome))
                       setShowIncomeForm(false)
                       setNewIncome('')
                     }
