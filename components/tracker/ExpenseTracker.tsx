@@ -185,7 +185,7 @@ export function ExpenseTracker() {
         <div className="w-full bg-gray-200 rounded-full h-4">
           <div 
             className={`h-4 rounded-full transition-all duration-500 ${
-              totalSpent > monthlyIncome ? 'bg-red-500' : 'bg-green-500'
+              totalSpent > financialData.monthlyIncome ? 'bg-red-500' : 'bg-green-500'
             }`}
             style={{ width: `${Math.min((totalSpent / financialData.monthlyIncome) * 100, 100)}%` }}
           />
