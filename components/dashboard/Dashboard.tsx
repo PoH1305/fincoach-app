@@ -27,17 +27,24 @@ export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
         <h1 className="text-2xl md:text-4xl font-poppins font-bold bg-gradient-to-r from-mint to-sky bg-clip-text text-transparent">
           Welcome back! 
         </h1>
-        <p className="text-base md:text-lg text-navy/70">You're 70% closer to your travel fund! 🎯</p>
+        <p className="text-base md:text-lg text-navy/70">You have ₹24,500 remaining this month! 💰</p>
       </motion.div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { icon: TrendingUp, label: 'Balance', value: '₹24,500', color: 'mint' },
-          { icon: Target, label: 'Goal Progress', value: '70%', color: 'sky' },
-          { icon: Award, label: 'XP Level', value: 'Level 5', color: 'coral' },
-          { icon: Sprout, label: 'Savings Rate', value: '+12%', color: 'lavender' }
-        ].map((stat, i) => (
+        {(() => {
+          const monthlyIncome = 50000 // Default income
+          const totalExpenses = 25500 // Demo expenses
+          const balance = monthlyIncome - totalExpenses
+          const savingsRate = Math.round((balance / monthlyIncome) * 100)
+          
+          return [
+            { icon: TrendingUp, label: 'Balance', value: `₹${balance.toLocaleString()}`, color: balance >= 0 ? 'mint' : 'coral' },
+            { icon: Target, label: 'Goal Progress', value: '70%', color: 'sky' },
+            { icon: Award, label: 'XP Level', value: 'Level 5', color: 'coral' },
+            { icon: Sprout, label: 'Savings Rate', value: `${savingsRate}%`, color: 'lavender' }
+          ]
+        })().map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
@@ -51,7 +58,9 @@ export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
               </div>
               <div>
                 <p className="text-sm text-navy/60">{stat.label}</p>
-                <p className="text-2xl font-bold text-navy">{stat.value}</p>
+                <p className={`text-2xl font-bold ${stat.label === 'Balance' && stat.value.includes('-') ? 'text-red-600' : 'text-navy'}`}>
+                  {stat.value}
+                </p>
               </div>
             </div>
           </motion.div>
