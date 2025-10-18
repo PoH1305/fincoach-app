@@ -309,6 +309,12 @@ export function ChatBot() {
             {action}
           </button>
         ))}
+        <button
+          onClick={() => setInput('Give me an AI tip')}
+          className="px-3 py-1 text-xs bg-lavender/20 text-navy rounded-full hover:bg-lavender/30 transition-colors"
+        >
+          💡 AI Tip
+        </button>
       </div>
     </div>
   )

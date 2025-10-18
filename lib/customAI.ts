@@ -188,7 +188,48 @@ function getFallbackResponse(message: string, personality: string): string {
   return responses.general[Math.floor(Math.random() * responses.general.length)]
 }
 
+const aiTips = {
+  supportive: [
+    "💚 Small wins matter! Celebrate every ₹1,000 you save - you're building amazing habits that will transform your future!",
+    "🌟 Be gentle with yourself on this financial journey. Every expert was once a beginner. You're doing better than you think!",
+    "💖 Your future self will thank you for every rupee you invest today. Start with just ₹500/month - progress over perfection!",
+    "🌱 Financial wellness is like tending a garden - consistent small actions bloom into beautiful results. What will you nurture today?",
+    "✨ Remember: budgeting isn't about restriction, it's about giving yourself permission to spend on what truly matters to you!"
+  ],
+  analytical: [
+    "📊 Fact: ₹10,000 invested monthly at 12% returns = ₹2.3 crores in 20 years. Time and consistency are your wealth-building superpowers!",
+    "📈 Data insight: People who automate their savings save 15% more than those who don't. Set up that auto-transfer today!",
+    "💡 Tax efficiency tip: ELSS funds offer tax deduction + equity returns. ₹1.5L investment saves ₹46,500 tax (30% bracket)!",
+    "🔢 Emergency fund formula: Monthly expenses × 6 = your safety net. ₹30,000 expenses = ₹1.8L emergency fund needed.",
+    "📋 Asset allocation by age: (100 - your age)% in equity. At 25: 75% equity, 25% debt for optimal risk-return balance."
+  ],
+  motivational: [
+    "🚀 EVERY CROREPATI STARTED WITH THEIR FIRST ₹100! Your wealth journey begins with the NEXT rupee you save! START NOW!",
+    "💪 COMPOUND INTEREST IS YOUR MONEY MULTIPLIER! ₹5,000/month for 25 years = ₹1.35 CRORES! You're building an EMPIRE!",
+    "🔥 FINANCIAL FREEDOM ISN'T A DREAM - IT'S A DECISION! Choose to pay yourself FIRST and watch your wealth EXPLODE!",
+    "⚡ BREAK THE PAYCHECK-TO-PAYCHECK CYCLE! Save ₹200/day = ₹73,000/year! Small actions, MASSIVE RESULTS!",
+    "🏆 YOU'RE NOT JUST SAVING MONEY - YOU'RE BUYING YOUR FREEDOM! Every SIP is a step towards your FINANCIAL INDEPENDENCE!"
+  ],
+  practical: [
+    "✅ Quick tip: Use the 24-hour rule for purchases over ₹2,000. Sleep on it - you'll avoid 70% of impulse buys!",
+    "💡 Practical hack: Round up every purchase to nearest ₹100 and save the difference. ₹2,340 bill = save ₹60. Adds up fast!",
+    "🏦 Bank smart: Keep 3 accounts - Salary (expenses), Savings (emergency), Investment (SIPs). Automate transfers between them.",
+    "📱 App recommendation: Use expense tracking apps like Money Manager or Walnut. Track for 30 days to find spending leaks.",
+    "⏰ Timing tip: Start SIPs on 5th of every month (after salary). Markets don't care about timing, but your cash flow does!"
+  ]
+}
+
+export function getAITip(personality: string): string {
+  const tips = aiTips[personality as keyof typeof aiTips] || aiTips.supportive
+  return tips[Math.floor(Math.random() * tips.length)]
+}
+
 export async function generateGeminiResponse(message: string, personality: string): Promise<string> {
+  // Check if this is a request for AI tip
+  if (message.toLowerCase().includes('ai tip') || message.toLowerCase().includes('give tip') || message.toLowerCase().includes('financial tip')) {
+    return getAITip(personality)
+  }
+  
   try {
     const personalityPrompts = {
       supportive: "You are Maya, a supportive financial coach. Be encouraging, warm, and patient. Use gentle guidance with positive reinforcement.",
