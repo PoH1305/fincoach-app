@@ -76,7 +76,7 @@ export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
             <span className="text-sm">Add Expense</span>
           </Button>
           <Button 
-            onClick={() => setActiveTab('goals')} 
+            onClick={() => setActiveTab('goalSetting')} 
             variant="secondary" 
             className="flex-col h-16 md:h-20 gap-1 md:gap-2 text-xs md:text-sm"
           >
