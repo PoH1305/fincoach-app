@@ -40,7 +40,7 @@ export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { icon: TrendingUp, label: 'Balance', value: `₹${balance.toLocaleString()}`, color: balance >= 0 ? 'mint' : 'coral' },
+          { icon: TrendingUp, label: 'Remaining Balance', value: `₹${balance.toLocaleString()}`, color: balance >= 0 ? 'mint' : 'coral' },
           { icon: Target, label: 'Goal Progress', value: '70%', color: 'sky' },
           { icon: Award, label: 'XP Level', value: 'Level 5', color: 'coral' },
           { icon: Sprout, label: 'Savings Rate', value: `${savingsRate}%`, color: 'lavender' }
@@ -58,7 +58,7 @@ export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
               </div>
               <div>
                 <p className="text-sm text-navy/60">{stat.label}</p>
-                <p className={`text-2xl font-bold ${stat.label === 'Balance' && balance < 0 ? 'text-red-600' : 'text-navy'}`}>
+                <p className={`text-2xl font-bold ${stat.label === 'Remaining Balance' && balance < 0 ? 'text-red-600' : 'text-navy'}`}>
                   {stat.value}
                 </p>
               </div>
