@@ -30,22 +30,18 @@ export function ChatBot() {
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [selectedPersonality, setSelectedPersonality] = useState('supportive')
-  const [showProactiveDemo, setShowProactiveDemo] = useState(false)
+  const [userMessageCount, setUserMessageCount] = useState(0)
 
   useEffect(() => {
     // Load proactive messages on component mount
     loadProactiveMessages()
-    
-    // Demo: Show proactive message after 5 seconds
-    const timer = setTimeout(() => {
-      if (!showProactiveDemo) {
-        addProactiveMessage()
-        setShowProactiveDemo(true)
-      }
-    }, 5000)
-    
-    return () => clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    if (userMessageCount > 0 && userMessageCount % 3 === 0) {
+      addProactiveMessage()
+    }
+  }, [userMessageCount])
 
   const loadProactiveMessages = async () => {
     try {
@@ -313,12 +309,6 @@ export function ChatBot() {
             {action}
           </button>
         ))}
-        <button
-          onClick={addProactiveMessage}
-          className="px-3 py-1 text-xs bg-lavender/20 text-navy rounded-full hover:bg-lavender/30 transition-colors"
-        >
-          💡 Get AI Tip
-        </button>
       </div>
     </div>
   )
