@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion'
 import { Sprout, TrendingUp, Target, Award, Trophy, Bell, Users, Brain } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useFinancial } from '@/lib/FinancialContext'
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void
@@ -9,6 +10,10 @@ interface DashboardProps {
 }
 
 export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
+  const { getBalance, getSavingsRate } = useFinancial()
+  const balance = getBalance()
+  const savingsRate = getSavingsRate()
+  
   return (
     <div className="min-h-screen p-6 space-y-8">
       {/* Header */}
@@ -27,24 +32,19 @@ export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
         <h1 className="text-2xl md:text-4xl font-poppins font-bold bg-gradient-to-r from-mint to-sky bg-clip-text text-transparent">
           Welcome back! 
         </h1>
-        <p className="text-base md:text-lg text-navy/70">You have ₹24,500 remaining this month! 💰</p>
+        <p className="text-base md:text-lg text-navy/70">
+          You have ₹{balance.toLocaleString()} remaining this month! 💰
+        </p>
       </motion.div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {(() => {
-          const monthlyIncome = 50000 // Default income
-          const totalExpenses = 25500 // Demo expenses
-          const balance = monthlyIncome - totalExpenses
-          const savingsRate = Math.round((balance / monthlyIncome) * 100)
-          
-          return [
-            { icon: TrendingUp, label: 'Balance', value: `₹${balance.toLocaleString()}`, color: balance >= 0 ? 'mint' : 'coral' },
-            { icon: Target, label: 'Goal Progress', value: '70%', color: 'sky' },
-            { icon: Award, label: 'XP Level', value: 'Level 5', color: 'coral' },
-            { icon: Sprout, label: 'Savings Rate', value: `${savingsRate}%`, color: 'lavender' }
-          ]
-        })().map((stat, i) => (
+        {[
+          { icon: TrendingUp, label: 'Balance', value: `₹${balance.toLocaleString()}`, color: balance >= 0 ? 'mint' : 'coral' },
+          { icon: Target, label: 'Goal Progress', value: '70%', color: 'sky' },
+          { icon: Award, label: 'XP Level', value: 'Level 5', color: 'coral' },
+          { icon: Sprout, label: 'Savings Rate', value: `${savingsRate}%`, color: 'lavender' }
+        ].map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
@@ -58,7 +58,7 @@ export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
               </div>
               <div>
                 <p className="text-sm text-navy/60">{stat.label}</p>
-                <p className={`text-2xl font-bold ${stat.label === 'Balance' && stat.value.includes('-') ? 'text-red-600' : 'text-navy'}`}>
+                <p className={`text-2xl font-bold ${stat.label === 'Balance' && balance < 0 ? 'text-red-600' : 'text-navy'}`}>
                   {stat.value}
                 </p>
               </div>
