@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion'
 import { Sprout, TrendingUp, Target, Award, Trophy, Bell, Users, Brain } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { useFinancial } from '@/lib/FinancialContext'
+import { useAppStore } from '@/lib/store'
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void
@@ -10,9 +10,9 @@ interface DashboardProps {
 }
 
 export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
-  const { getBalance, getSavingsRate } = useFinancial()
-  const balance = getBalance()
-  const savingsRate = getSavingsRate()
+  const { expenses, totalBalance } = useAppStore()
+  const balance = totalBalance
+  const savingsRate = expenses.length > 0 ? Math.round((balance / 50000) * 100) : 0
   
   return (
     <div className="min-h-screen p-6 space-y-8">

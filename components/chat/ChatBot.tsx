@@ -1,10 +1,10 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Bot, User, Lightbulb, Target, Trophy, Zap, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { VoiceInput } from '@/components/ui/VoiceInput'
-import { generateGeminiResponse, coachingPersonalities } from '../../lib/customAI'
+import { useAppStore } from '../../lib/store'
 import { proactiveAssistant, ProactiveMessage } from '../../lib/ai/proactiveAssistant'
 
 
@@ -31,17 +31,24 @@ export function ChatBot() {
   const [isTyping, setIsTyping] = useState(false)
   const [selectedPersonality, setSelectedPersonality] = useState('supportive')
   const [userMessageCount, setUserMessageCount] = useState(0)
+  const [useLocal, setUseLocal] = useState(false)
 
-  useEffect(() => {
-    // Load proactive messages on component mount
-    loadProactiveMessages()
-  }, [])
-
-  useEffect(() => {
-    if (userMessageCount > 0 && userMessageCount % 3 === 0) {
-      addProactiveMessage()
+  const addProactiveMessage = useCallback(async () => {
+    try {
+      const proactiveMsg = await proactiveAssistant.generateDemoMessage('demo')
+      const newMessage: Message = {
+        id: proactiveMsg.id,
+        text: proactiveMsg.message,
+        sender: 'bot',
+        timestamp: proactiveMsg.timestamp,
+        isProactive: true,
+        type: proactiveMsg.type
+      }
+      setMessages(prev => [...prev, newMessage])
+    } catch (error) {
+      console.error('Error adding proactive message:', error)
     }
-  }, [userMessageCount])
+  }, [])
 
   const loadProactiveMessages = async () => {
     try {
@@ -54,28 +61,21 @@ export function ChatBot() {
         isProactive: true,
         type: msg.type
       }))
-      setMessages(prev => [...formattedMessages, ...prev])
+      setMessages(prev => [...prev, ...formattedMessages])
     } catch (error) {
       console.error('Error loading proactive messages:', error)
     }
   }
 
-  const addProactiveMessage = async () => {
-    try {
-      const proactiveMsg = await proactiveAssistant.generateDemoMessage('demo')
-      const newMessage: Message = {
-        id: proactiveMsg.id,
-        text: proactiveMsg.message,
-        sender: 'bot',
-        timestamp: proactiveMsg.timestamp,
-        isProactive: true,
-        type: proactiveMsg.type
-      }
-      setMessages(prev => [newMessage, ...prev])
-    } catch (error) {
-      console.error('Error adding proactive message:', error)
+  useEffect(() => {
+    loadProactiveMessages()
+  }, [])
+
+  useEffect(() => {
+    if (userMessageCount > 0 && userMessageCount % 3 === 0) {
+      addProactiveMessage()
     }
-  }
+  }, [userMessageCount, addProactiveMessage])
   
   const personalities = [
     { id: 'supportive', name: 'Maya - Supportive', icon: '🤗', description: 'Gentle guidance' },
@@ -94,31 +94,57 @@ export function ChatBot() {
       timestamp: new Date()
     }
 
-    setMessages(prev => [...prev, userMessage])
-    const currentInput = input
-    setInput('')
-    setIsTyping(true)
+  setMessages(prev => [...prev, userMessage])
+  const currentInput = input
+  setInput('')
+  setIsTyping(true)
 
     try {
-      const response = await generateGeminiResponse(currentInput, selectedPersonality)
-      
+      // Send a trimmed/sanitized history to the server to avoid sending large objects
+      const sanitizedHistory = messages
+        .slice(-10) // only keep the last 10 messages
+        .map(m => ({ sender: m.sender, text: m.text }))
+
+      const endpoint = useLocal ? '/api/local' : '/api/gemini'
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: currentInput,
+          history: sanitizedHistory,
+          context: `Personality: ${selectedPersonality}. User has expenses and needs financial advice.`
+        })
+      })
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '')
+        console.error('API Error:', response.status, text)
+        throw new Error(text || `AI provider error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('API Response:', data)
+
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: response,
+        text: data.response || 'Sorry, I could not process that request.',
         sender: 'bot',
         timestamp: new Date()
       }
       setMessages(prev => [...prev, botMessage])
-      setIsTyping(false)
+      setUserMessageCount(prev => prev + 1)
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Chat Error:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Sorry, I\'m having trouble right now. Please try again!',
+        text: `Error: ${errorMsg}. Check console for details.`,
         sender: 'bot',
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
+    } finally {
       setIsTyping(false)
     }
   }
@@ -162,8 +188,17 @@ export function ChatBot() {
             <Bot className="w-6 h-6 text-navy" />
           </motion.div>
           <div>
-            <h3 className="font-poppins font-bold text-lg">{coachingPersonalities[selectedPersonality as keyof typeof coachingPersonalities]?.name || 'FinCoach'}</h3>
-            <p className="text-sm text-navy/60">Your AI Financial Coach</p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h3 className="font-poppins font-bold text-lg text-navy">FinCoach AI</h3>
+                <p className="text-sm text-navy/60">Your AI Financial Coach</p>
+              </div>
+              <div className="ml-2 flex items-center gap-2">
+                <label className="text-xs text-navy/60">Local</label>
+                <input type="checkbox" checked={useLocal} onChange={(e) => setUseLocal(e.target.checked)} />
+                <label className="text-xs text-navy/60">Remote</label>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -175,8 +210,8 @@ export function ChatBot() {
               onClick={() => setSelectedPersonality(personality.id)}
               className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors ${
                 selectedPersonality === personality.id
-                  ? 'bg-mint/30 text-navy'
-                  : 'bg-white/10 text-navy/70 hover:bg-white/20'
+                  ? 'bg-mint text-navy font-bold'
+                  : 'bg-navy/10 text-navy/70 hover:bg-navy/20'
               }`}
             >
               <span>{personality.icon}</span>
@@ -197,35 +232,35 @@ export function ChatBot() {
               exit={{ opacity: 0, y: -20 }}
               className={`flex gap-3 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md ${
                 message.sender === 'bot' 
                   ? message.isProactive
                     ? 'bg-gradient-to-r from-lavender to-mint animate-pulse'
                     : 'bg-gradient-to-r from-mint to-sky'
-                  : 'bg-coral/20'
+                  : 'bg-coral/80'
               }`}>
                 {message.sender === 'bot' ? (
-                  message.isProactive ? getProactiveIcon(message.type) : <Bot className="w-4 h-4 text-navy" />
+                  message.isProactive ? getProactiveIcon(message.type) : <Bot className="w-4 h-4 text-white" />
                 ) : (
-                  <User className="w-4 h-4 text-coral" />
+                  <User className="w-4 h-4 text-white" />
                 )}
               </div>
               <div className={`max-w-[70%] ${
                 message.isProactive
-                  ? `p-4 rounded-2xl bg-gradient-to-r ${getProactiveColor(message.type)} border-l-4 backdrop-blur-md`
+                  ? `p-4 rounded-2xl bg-gradient-to-r ${getProactiveColor(message.type)} border-l-4 backdrop-blur-md shadow-lg`
                   : message.sender === 'bot'
-                    ? 'p-3 rounded-2xl bg-white/20 backdrop-blur-md'
-                    : 'p-3 rounded-2xl bg-coral/20'
+                    ? 'p-3 rounded-2xl bg-white/20 backdrop-blur-md shadow-md'
+                    : 'p-3 rounded-2xl bg-coral/20 shadow-md'
               }`}>
                 {message.isProactive && (
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold text-navy/80">FinCoach Tip 💡</span>
-                    <span className="text-xs px-2 py-1 bg-white/30 rounded-full capitalize">
+                    <span className="text-xs font-bold text-navy">FinCoach Tip 💡</span>
+                    <span className="text-xs px-2 py-1 bg-white/30 rounded-full capitalize text-navy">
                       {message.type}
                     </span>
                   </div>
                 )}
-                <p className="text-sm">{message.text}</p>
+                <p className="text-sm text-navy">{message.text}</p>
                 {message.isProactive && (
                   <div className="flex gap-2 mt-3">
                     <button
@@ -263,17 +298,17 @@ export function ChatBot() {
             animate={{ opacity: 1 }}
             className="flex gap-3"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-mint to-sky flex items-center justify-center">
-              <Bot className="w-4 h-4 text-navy" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-mint to-sky flex items-center justify-center shadow-md">
+              <Bot className="w-4 h-4 text-white" />
             </div>
-            <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl">
+            <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl shadow-md">
               <div className="flex gap-1">
                 {[0, 1, 2].map((i) => (
                   <motion.div
                     key={i}
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.2 }}
-                    className="w-2 h-2 bg-navy/40 rounded-full"
+                    className="w-2 h-2 bg-white/40 rounded-full"
                   />
                 ))}
               </div>
@@ -287,13 +322,14 @@ export function ChatBot() {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          onKeyPress={(e) => e.key === 'Enter' && !isTyping && sendMessage()}
+          disabled={isTyping}
           placeholder="Ask me anything about your finances..."
-          className="flex-1 px-4 py-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl 
-                   focus:outline-none focus:ring-2 focus:ring-mint/50 placeholder-navy/50"
+          className="flex-1 px-4 py-2 bg-white/80 backdrop-blur-md border border-navy/20 rounded-2xl 
+                   focus:outline-none focus:ring-2 focus:ring-mint/50 placeholder-navy/50 text-navy"
         />
         <VoiceInput onTranscript={setInput} />
-        <Button onClick={sendMessage} size="sm" className="px-4">
+        <Button onClick={sendMessage} size="sm" disabled={isTyping} className="px-4 bg-mint hover:bg-mint/80 text-navy rounded-xl shadow-lg">
           <Send className="w-4 h-4" />
         </Button>
       </div>
@@ -304,14 +340,14 @@ export function ChatBot() {
           <button
             key={action}
             onClick={() => setInput(action)}
-            className="px-3 py-1 text-xs bg-mint/20 text-navy rounded-full hover:bg-mint/30 transition-colors"
+            className="px-3 py-1 text-xs bg-navy/10 text-navy/70 rounded-full hover:bg-navy/20 transition-colors"
           >
             {action}
           </button>
         ))}
         <button
           onClick={() => setInput('Give me an AI tip')}
-          className="px-3 py-1 text-xs bg-lavender/20 text-navy rounded-full hover:bg-lavender/30 transition-colors"
+          className="px-3 py-1 text-xs bg-lavender/20 text-navy/80 rounded-full hover:bg-lavender/30 transition-colors"
         >
           💡 AI Tip
         </button>

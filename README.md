@@ -1,7 +1,19 @@
 # FinCoach 💸
 ## Your Money, Your Move
 
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.3-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-10.5-orange?logo=firebase)](https://firebase.google.com/)
+
 A next-generation AI-powered financial wellness app that makes personal finance fun, interactive, and human.
+
+![FinCoach Demo](https://via.placeholder.com/800x400/4ade80/ffffff?text=FinCoach+Demo)
+
+## 🚀 Live Demo
+
+[Visit FinCoach](https://fincoach-demo.vercel.app) • [View Documentation](./setup.md)
 
 ### 🌟 Features
 
@@ -32,23 +44,48 @@ A next-generation AI-powered financial wellness app that makes personal finance 
 - **Auth**: Firebase Authentication
 - **Deployment**: Vercel
 
-### 🛠️ Setup
+## 🛠️ Quick Start
 
-1. **Install dependencies**:
+### Prerequisites
+- Node.js 18+ and npm
+- Firebase account
+- Google AI Studio API key
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/sarayu-mangapuram/fincoach.git
+   cd fincoach
+   ```
+
+2. **Install dependencies**:
    ```bash
    npm install
    ```
 
-2. **Configure environment variables**:
-   - Copy `.env.local` and add your Firebase and OpenAI keys
-   - Set up Firebase project with Firestore and Authentication
+3. **Configure environment variables**:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Add your Firebase and Google AI keys to `.env.local`
 
-3. **Run development server**:
+4. **Run development server**:
    ```bash
    npm run dev
    ```
 
-4. **Open** [http://localhost:3000](http://localhost:3000)
+5. **Open** [http://localhost:3000](http://localhost:3000)
+
+### Available Scripts
+
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run start    # Start production server
+npm run test     # Run tests
+npm run lint     # Run ESLint
+```
 
 ### 🎯 Core Components
 
@@ -88,13 +125,32 @@ A next-generation AI-powered financial wellness app that makes personal finance 
 - [ ] Bill Reminders
 - [ ] Credit Score Monitoring
 
-### 🤝 Contributing
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 1. Fork the repository
-2. Create feature branch
-3. Follow design system guidelines
-4. Add tests for new features
-5. Submit pull request
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📊 Project Status
+
+- ✅ Core Features Implemented
+- ✅ AI Chatbot Integration
+- ✅ Expense Tracking
+- ✅ Gamification System
+- 🚧 Social Features (In Progress)
+- 📋 Mobile App (Planned)
+
+## 🐛 Issues & Support
+
+Found a bug? Have a feature request? Please [open an issue](https://github.com/sarayu-mangapuram/fincoach/issues).
+
+## ⭐ Show Your Support
+
+Give a ⭐️ if this project helped you!
 
 ### 📄 License
 
@@ -102,4 +158,7 @@ MIT License - see LICENSE file for details
 
 ---
 
-**Built with ❤️ for financial wellness**
+<div align="center">
+  <p><strong>Built with ❤️ for financial wellness</strong></p>
+  <p>Made by <a href="https://github.com/sarayu-mangapuram">@sarayu-mangapuram</a></p>
+</div>

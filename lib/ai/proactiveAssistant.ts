@@ -57,9 +57,15 @@ Use Indian context (₹, SIP, mutual funds).`
         })
       })
       
+      if (!response.ok) {
+        console.error('Proactive message API error:', response.status)
+        return this.getFallbackMessage(analysis)
+      }
+      
       const data = await response.json()
       return data.response || this.getFallbackMessage(analysis)
     } catch (error) {
+      console.error('Error generating proactive message:', error)
       return this.getFallbackMessage(analysis)
     }
   }
