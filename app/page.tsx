@@ -21,7 +21,7 @@ import { LandingPage } from '@/components/landing/LandingPage'
 import { AuthPage } from '@/components/auth/AuthPage'
 import { ProfilePage } from '@/components/profile/ProfilePage'
 import { ProactiveAssistant } from '@/components/ProactiveAssistant'
-import { FinancialProvider } from '@/lib/FinancialContext'
+import { useAppStore } from '@/lib/store'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: HomeIcon, emoji: '🏠' },
@@ -117,8 +117,7 @@ export default function Home() {
   }
 
   return (
-    <FinancialProvider>
-      <div className="min-h-screen bg-gradient-to-br from-cream via-mint/10 to-sky/10">
+    <div className="min-h-screen bg-gradient-to-br from-cream via-mint/10 to-sky/10">
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -334,7 +333,6 @@ export default function Home() {
           </motion.div>
         </motion.div>
       )}
-      </div>
-    </FinancialProvider>
+    </div>
   )
 }

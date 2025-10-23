@@ -1,46 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+
 export async function POST(request: NextRequest) {
+  if (!GEMINI_API_KEY) {
+    return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
+  }
+
   try {
-    const { message } = await request.json()
+    const body = await request.json()
+    const { message, context } = body || {}
 
-    const systemPrompt = `You are FinCoach, a supportive and playful AI financial wellness coach. 
-    Your personality is friendly, empowering, and celebrates small wins. 
-    Use emojis naturally and keep responses concise but helpful.
-    Always end with an actionable suggestion or question to keep the conversation engaging.`
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid request: message required' }, { status: 400 })
+    }
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyBib6xYJwPPvVvnX-i8nOCKIlg1l3d24eY`, {
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+
+    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `${systemPrompt}
-
-User: ${message}`
+            text: `You are FinCoach, a supportive AI financial advisor. Context: ${context || 'General financial advice'}. User message: ${message}`
           }]
         }],
         generationConfig: {
-          maxOutputTokens: 300,
-          temperature: 0.7
+          temperature: 0.7,
+          maxOutputTokens: 500
         }
       })
     })
-
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`)
+      const text = await response.text().catch(() => '')
+      return NextResponse.json({ error: 'AI provider error', details: text }, { status: 502 })
     }
 
     const data = await response.json()
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm here to help with your finances! 💰"
-    
-    return NextResponse.json({ response: text })
+    const aiResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not process that request.'
+
+    return NextResponse.json({ response: aiResponse })
   } catch (error) {
-    console.error('Gemini API error:', error)
-    return NextResponse.json({ 
-      response: "I'm having trouble connecting right now, but I'm still here to support your financial journey! 🌟" 
-    })
+    console.error('chat route error:', error)
+    return NextResponse.json({ error: 'Failed to get AI response' }, { status: 500 })
   }
 }
