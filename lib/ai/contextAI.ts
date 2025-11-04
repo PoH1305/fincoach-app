@@ -18,7 +18,7 @@ Financial Profile:
 - Total Expenses: ₹${totalExpenses}
 - Savings Rate: ${data.savingsRate}%
 - Top Categories: ${Object.entries(categoryBreakdown)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([,a], [,b]) => (b as number) - (a as number))
     .slice(0, 3)
     .map(([cat, amt]) => `${cat} (₹${amt})`)
     .join(', ')}
