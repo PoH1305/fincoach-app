@@ -4,9 +4,12 @@ import { Sparkles, RefreshCw } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { generateAIInsight } from '@/lib/ai/spendingAnalyzer'
 import { useBudgetStore } from '@/lib/stores/budgetStore'
+import { useAppStore } from '@/lib/store'
 
 export function AIInsightCard() {
-  const { expenses } = useBudgetStore()
+  const budgetStore = useBudgetStore()
+  const appStore = useAppStore()
+  const expenses = budgetStore.expenses.length > 0 ? budgetStore.expenses : appStore.expenses
   const [insight, setInsight] = useState('Loading insights...')
   const [loading, setLoading] = useState(false)
 

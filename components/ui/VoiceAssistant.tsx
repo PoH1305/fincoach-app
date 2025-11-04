@@ -5,6 +5,7 @@ import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
 import { VoiceAssistant, parseVoiceCommand } from '@/lib/ai/voiceAssistant'
 import { useBudgetStore } from '@/lib/stores/budgetStore'
 import { useUserStore } from '@/lib/stores/userStore'
+import { useAppStore } from '@/lib/store'
 
 export function VoiceAssistantButton() {
   const [assistant] = useState(() => new VoiceAssistant())
@@ -22,6 +23,14 @@ export function VoiceAssistantButton() {
     switch (command.action) {
       case 'add_expense':
         if (command.data.amount) {
+          const appStore = useAppStore.getState()
+          appStore.addExpense({
+            id: Date.now().toString(),
+            amount: parseInt(command.data.amount),
+            category: command.data.category,
+            description: 'Voice added',
+            date: new Date().toISOString()
+          })
           addExpense({
             id: Date.now().toString(),
             amount: parseInt(command.data.amount),

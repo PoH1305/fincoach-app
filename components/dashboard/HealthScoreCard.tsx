@@ -3,10 +3,14 @@ import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { calculateHealthScore, getScoreColor, getScoreTrend } from '@/lib/ai/healthScore'
 import { useBudgetStore } from '@/lib/stores/budgetStore'
+import { useAppStore } from '@/lib/store'
 import { useEffect, useState } from 'react'
 
 export function HealthScoreCard() {
-  const { expenses, totalBalance } = useBudgetStore()
+  const budgetStore = useBudgetStore()
+  const appStore = useAppStore()
+  const expenses = budgetStore.expenses.length > 0 ? budgetStore.expenses : appStore.expenses
+  const totalBalance = budgetStore.totalBalance !== 0 ? budgetStore.totalBalance : appStore.totalBalance
   const [score, setScore] = useState(0)
   const [displayScore, setDisplayScore] = useState(0)
 

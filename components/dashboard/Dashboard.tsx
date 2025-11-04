@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Sprout, TrendingUp, Target, Award, Trophy, Bell, Users, Brain } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useBudgetStore } from '@/lib/stores/budgetStore'
+import { useAppStore } from '@/lib/store'
 import { HealthScoreCard } from './HealthScoreCard'
 import { AIInsightCard } from './AIInsightCard'
 import { QuickActionsCard } from './QuickActionsCard'
@@ -14,7 +15,10 @@ interface DashboardProps {
 }
 
 export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
-  const { expenses, totalBalance } = useBudgetStore()
+  const budgetStore = useBudgetStore()
+  const appStore = useAppStore()
+  const expenses = budgetStore.expenses.length > 0 ? budgetStore.expenses : appStore.expenses
+  const totalBalance = budgetStore.totalBalance !== 0 ? budgetStore.totalBalance : appStore.totalBalance
   const balance = totalBalance
   const savingsRate = expenses.length > 0 ? Math.round((balance / 50000) * 100) : 0
   
