@@ -22,6 +22,7 @@ import { LandingPage } from '@/components/landing/LandingPage'
 import { AuthPage } from '@/components/auth/AuthPage'
 import { ProfilePage } from '@/components/profile/ProfilePage'
 import { ProactiveAssistant } from '@/components/ProactiveAssistant'
+import { VoiceAssistantButton } from '@/components/ui/VoiceAssistant'
 import { useAppStore } from '@/lib/store'
 
 const navigation = [
@@ -275,6 +276,9 @@ export default function Home() {
 
       {/* Proactive AI Assistant */}
       <ProactiveAssistant />
+
+      {/* Voice Assistant */}
+      <VoiceAssistantButton />
 
       {/* Chat Button */}
       <motion.button
