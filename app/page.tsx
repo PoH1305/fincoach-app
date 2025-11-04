@@ -23,6 +23,8 @@ import { AuthPage } from '@/components/auth/AuthPage'
 import { ProfilePage } from '@/components/profile/ProfilePage'
 import { ProactiveAssistant } from '@/components/ProactiveAssistant'
 import { VoiceAssistantButton } from '@/components/ui/VoiceAssistant'
+import { PricingModal } from '@/components/premium/PricingModal'
+import { PremiumBadge } from '@/components/premium/PremiumBadge'
 import { useAppStore } from '@/lib/store'
 
 const navigation = [
@@ -44,6 +46,8 @@ export default function Home() {
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastEmoji, setToastEmoji] = useState('🎉')
+  const [showPricing, setShowPricing] = useState(false)
+  const [userPlan, setUserPlan] = useState('free')
 
   const handleQuizComplete = (coachType: string) => {
     setUserCoachType(coachType)
@@ -162,6 +166,7 @@ export default function Home() {
             >
               <Bell className="w-5 h-5" />
             </motion.button>
+            <PremiumBadge plan={userPlan} onClick={() => setShowPricing(true)} />
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -279,6 +284,17 @@ export default function Home() {
 
       {/* Voice Assistant */}
       <VoiceAssistantButton />
+
+      {/* Pricing Modal */}
+      <PricingModal 
+        isOpen={showPricing} 
+        onClose={() => setShowPricing(false)}
+        onSelectPlan={(planId) => {
+          setUserPlan(planId)
+          setShowPricing(false)
+          showNotification(`Upgraded to ${planId}!`, '👑')
+        }}
+      />
 
       {/* Chat Button */}
       <motion.button
