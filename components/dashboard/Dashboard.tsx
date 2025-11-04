@@ -6,6 +6,7 @@ import { useBudgetStore } from '@/lib/stores/budgetStore'
 import { HealthScoreCard } from './HealthScoreCard'
 import { AIInsightCard } from './AIInsightCard'
 import { QuickActionsCard } from './QuickActionsCard'
+import { MemoryIndicator } from '@/components/ui/MemoryIndicator'
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void
@@ -39,6 +40,9 @@ export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
           You have ₹{balance.toLocaleString()} remaining this month! 💰
         </p>
       </motion.div>
+
+      {/* Memory Indicator */}
+      <MemoryIndicator />
 
       {/* New Feature Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

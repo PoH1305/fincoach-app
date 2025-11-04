@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Home as HomeIcon, MessageCircle, PieChart, Target, BookOpen, Users, Bot, Trophy, Bell, TrendingUp, Brain, User } from 'lucide-react'
 import { Dashboard } from '@/components/dashboard/Dashboard'
 import { ChatBot } from '@/components/chat/ChatBot'
+import { MemoryChatBot } from '@/components/chat/MemoryChatBot'
 import { PersonalityQuiz } from '@/components/quiz/PersonalityQuiz'
 import { ExpenseTracker } from '@/components/tracker/ExpenseTracker'
 import { ConsequenceEngine } from '@/components/goals/ConsequenceEngine'
@@ -86,7 +87,7 @@ export default function Home() {
       case 'dashboard':
         return <Dashboard setActiveTab={setActiveTab} showNotification={showNotification} />
       case 'chat':
-        return <ChatBot />
+        return <MemoryChatBot />
       case 'tracker':
         return <ExpenseTracker />
       case 'goals':
