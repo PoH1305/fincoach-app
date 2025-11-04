@@ -1,7 +1,11 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
+  "/api/chat/memory/route": "app/api/chat/memory/route.js",
+  "/api/chat/route": "app/api/chat/route.js",
+  "/api/debug/models/route": "app/api/debug/models/route.js",
   "/api/gemini/route": "app/api/gemini/route.js",
-  "/page": "app/page.js",
+  "/api/health-score/route": "app/api/health-score/route.js",
   "/api/local/route": "app/api/local/route.js",
-  "/api/chat/route": "app/api/chat/route.js"
+  "/page": "app/page.js",
+  "/api/chat/v2/route": "app/api/chat/v2/route.js"
 }

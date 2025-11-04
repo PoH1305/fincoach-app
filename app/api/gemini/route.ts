@@ -11,4 +11,10 @@ export async function POST(request: NextRequest) {
 
     const prompt = `You are FinCoach, a supportive AI financial advisor. ${context || 'General financial advice'}
 
-User: ${message}
+User: ${message}`
+
+    return NextResponse.json({ response: prompt })
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to process' }, { status: 500 })
+  }
+}
