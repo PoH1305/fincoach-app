@@ -2,7 +2,10 @@
 import { motion } from 'framer-motion'
 import { Sprout, TrendingUp, Target, Award, Trophy, Bell, Users, Brain } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { useAppStore } from '@/lib/store'
+import { useBudgetStore } from '@/lib/stores/budgetStore'
+import { HealthScoreCard } from './HealthScoreCard'
+import { AIInsightCard } from './AIInsightCard'
+import { QuickActionsCard } from './QuickActionsCard'
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void
@@ -10,7 +13,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
-  const { expenses, totalBalance } = useAppStore()
+  const { expenses, totalBalance } = useBudgetStore()
   const balance = totalBalance
   const savingsRate = expenses.length > 0 ? Math.round((balance / 50000) * 100) : 0
   
@@ -36,6 +39,18 @@ export function Dashboard({ setActiveTab, showNotification }: DashboardProps) {
           You have ₹{balance.toLocaleString()} remaining this month! 💰
         </p>
       </motion.div>
+
+      {/* New Feature Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <HealthScoreCard />
+        <AIInsightCard />
+        <QuickActionsCard onAction={(action) => {
+          if (action === 'expense') setActiveTab('tracker')
+          else if (action === 'voice') showNotification('Voice input coming soon!', '🎤')
+          else if (action === 'scan') showNotification('Receipt scanner coming soon!', '📸')
+          else if (action === 'insights') setActiveTab('insights')
+        }} />
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
