@@ -3,6 +3,10 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Plus, Target, Music, Building, Laptop, Car, Home, Plane, GraduationCap, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { GoalPredictionCard } from './GoalPredictionCard'
+import { GoalTimelineView } from './GoalTimelineView'
+import { predictGoalCompletion } from '@/lib/ai/goalPredictor'
+import { useBudgetStore } from '@/lib/stores/budgetStore'
 
 interface Goal {
   id: string
@@ -20,6 +24,8 @@ interface GoalSettingProps {
 }
 
 export function GoalSetting({ onBack }: GoalSettingProps) {
+  const { expenses } = useBudgetStore()
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null)
   const [goals, setGoals] = useState<Goal[]>([
     {
       id: '1',
@@ -139,6 +145,17 @@ export function GoalSetting({ onBack }: GoalSettingProps) {
           </div>
         </div>
 
+        {/* Goal Predictions */}
+        {selectedGoal && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <GoalPredictionCard goal={selectedGoal} />
+            <GoalTimelineView 
+              goal={selectedGoal} 
+              prediction={predictGoalCompletion(selectedGoal, expenses, 50000)}
+            />
+          </div>
+        )}
+
         {/* Goals Section */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-poppins font-bold text-xl text-navy flex items-center gap-2">
@@ -162,7 +179,10 @@ export function GoalSetting({ onBack }: GoalSettingProps) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="card hover:shadow-lg transition-shadow"
+                  onClick={() => setSelectedGoal(goal)}
+                  className={`card hover:shadow-lg transition-all cursor-pointer ${
+                    selectedGoal?.id === goal.id ? 'ring-2 ring-mint' : ''
+                  }`}
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
